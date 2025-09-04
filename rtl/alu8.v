@@ -1,9 +1,9 @@
-module alu(
-    input [15:0] regA, regB,
+module alu8(
+    input [8:0] regA, regB,
     input [3:0] opcode,
     input carryIn,
 
-    output [15:0] res,
+    output [8:0] res,
     output [7:0] flagsOut
 );
 
@@ -22,7 +22,8 @@ module alu(
     always @(posedge clk) begin
         case (opcode)
             4'b0000:
-                res <= regA + regB;
+                [flagOut[4], res] <= regA + regB;
+                flagOut[5] <= (regA + regB)[4];
             4'b0000:
             
             4'b0001:

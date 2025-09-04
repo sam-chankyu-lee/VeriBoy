@@ -3,7 +3,6 @@
 module tb_regfile;
     reg clk;
     reg rst; 
-    reg writeReg;
     reg [1:0] writeEn;
     reg writeFlag;
 
@@ -28,7 +27,6 @@ module tb_regfile;
     regfile r0 (
         .clk(clk),
         .rst(rst), 
-        .writeReg(writeReg),
         .writeEn(writeEn),
         .writeFlag(writeFlag),
 
@@ -50,7 +48,6 @@ module tb_regfile;
     function void init();
         clk <= 0;
         rst <= 1;
-        writeReg <= 0;
         writeEn <= 0;
         writeFlag <= 0;
         rdReg1 <= 0;
