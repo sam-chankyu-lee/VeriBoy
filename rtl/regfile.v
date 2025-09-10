@@ -3,7 +3,6 @@
 module regfile(
     input clk,
     input rst, 
-    input writeReg,
     input [1:0] writeEn,
     input writeFlag,
 
