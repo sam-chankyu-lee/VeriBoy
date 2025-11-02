@@ -47,6 +47,18 @@ module tb_alu8;
         for (int i=0; i<100; i=i+1) begin
             testSubtraction();
         end
+        $display("\nAND");
+        for (int i=0; i<100; i=i+1) begin
+            testAnd();
+        end
+        $display("\nOR");
+        for (int i=0; i<100; i=i+1) begin
+            testOr();
+        end
+        $display("\nXOR");
+        for (int i=0; i<100; i=i+1) begin
+            testXor();
+        end
         $finish;
     end
     // sdfglhjsdfkjhgf
@@ -90,7 +102,7 @@ module tb_alu8;
         regB <= rng()[7:0];
         opcode <= OP_SBC;
         carryIn <= 1;
-        #2
+        #2;
 
         temp <= regA-regB-1;
         if (res != temp) begin
@@ -105,4 +117,60 @@ module tb_alu8;
         #2;
     endfunction
 
+    function void testAnd();
+        regA <= rng()[7:0];
+        regB <= rng()[7:0];
+        opcode <= OP_AND;
+        #2;
+
+        temp <= regA & regB;
+        if (res != temp) begin
+            $display("Reg A: %0d | Reg B: %0d | A-B: %0d | Hardware Result: %0d", regA, regB, temp, res);
+            $display("AND value is incorrect");
+        end
+
+        regA <= 0;
+        regB <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testOr();
+        regA <= rng()[7:0];
+        regB <= rng()[7:0];
+        opcode <= OP_OR;
+        #2;
+
+        temp <= regA | regB;
+        $display("Reg A: %0d | Reg B: %0d | A-B: %0d | Hardware Result: %0d", regA, regB, temp, res);
+        if (res != temp) begin
+            $display("OR value is incorrect");
+        end
+
+        regA <= 0;
+        regB <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testXor();
+        regA <= rng()[7:0];
+        regB <= rng()[7:0];
+        opcode <= OP_XOR;
+        #2;
+
+        temp <= regA ^ regB;
+        $display("Reg A: %0d | Reg B: %0d | A-B: %0d | Hardware Result: %0d", regA, regB, temp, res);
+        if (res != temp) begin
+            $display("XOR value is incorrect");
+        end
+
+        regA <= 0;
+        regB <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
 endmodule
