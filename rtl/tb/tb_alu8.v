@@ -59,6 +59,14 @@ module tb_alu8;
         for (int i=0; i<100; i=i+1) begin
             testXor();
         end
+        $display("\nRL");
+        for (int i=0; i<100; i=i+1) begin
+            testRL();
+        end
+        $display("\nRR");
+        for (int i=0; i<100; i=i+1) begin
+            testRR();
+        end
         $finish;
     end
     // sdfglhjsdfkjhgf
@@ -143,8 +151,8 @@ module tb_alu8;
         #2;
 
         temp <= regA | regB;
-        $display("Reg A: %0d | Reg B: %0d | A-B: %0d | Hardware Result: %0d", regA, regB, temp, res);
         if (res != temp) begin
+            $display("Reg A: %0d | Reg B: %0d | A-B: %0d | Hardware Result: %0d", regA, regB, temp, res);
             $display("OR value is incorrect");
         end
 
@@ -162,13 +170,49 @@ module tb_alu8;
         #2;
 
         temp <= regA ^ regB;
-        $display("Reg A: %0d | Reg B: %0d | A-B: %0d | Hardware Result: %0d", regA, regB, temp, res);
         if (res != temp) begin
+            $display("Reg A: %0d | Reg B: %0d | A-B: %0d | Hardware Result: %0d", regA, regB, temp, res);
             $display("XOR value is incorrect");
         end
 
         regA <= 0;
         regB <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testRL();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_RL;
+        #2;
+
+        temp <= {regA[6:0], carryIn};
+        $display("Reg A: %8b | Carry: %0b | A<<1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
+        if (res != temp) begin
+            $display("RL value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testRR();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_RR;
+        #2;
+
+        temp <= {carryIn, regA[7:1]};
+        $display("Reg A: %8b | Carry: %0b | A>>1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
+        if (res != temp) begin
+            $display("RL value is incorrect");
+        end
+
+        regA <= 0;
         opcode <= 0;
         carryIn <= 0;
         #2;

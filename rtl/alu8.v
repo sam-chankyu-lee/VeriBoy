@@ -33,7 +33,6 @@ module alu8(
         low       = 5'b0;
         high      = 5'b0;
 
-        
         case (opcode)
             OP_ADD, OP_ADC: begin
                 //set low and high of addition
@@ -147,11 +146,33 @@ module alu8(
             end
             
             OP_RL: begin
+                //set res to left shift, also set carry
+                {flagsOut[4], res} = {regA, carryIn};
 
+                //set half carry flag
+                flagsOut[5] = 0;
+
+                //set zero flag
+                if (res == 0) 
+                    flagsOut[7] = 1;
+
+                //set subtraction flag
+                flagsOut[6] = 0;
             end
 
             OP_RR: begin 
+                //set res to right shift, also set carry
+                {res, flagsOut[4]} = {carryIn, regA};
 
+                //set half carry flag
+                flagsOut[5] = 0;
+
+                //set zero flag
+                if (res == 0) 
+                    flagsOut[7] = 1;
+
+                //set subtraction flag
+                flagsOut[6] = 0;
             end
 
             OP_BSL: begin
