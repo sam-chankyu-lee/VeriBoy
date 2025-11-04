@@ -2,27 +2,33 @@
 
 module alu8(
     input [7:0] regA, regB,
-    input [3:0] opcode,
+    input [4:0] opcode,
     input carryIn,
 
     output reg [7:0] res,
     output reg [7:0] flagsOut
 );
 
-    localparam OP_ADD = 4'b0000;
-    localparam OP_ADC = 4'b0001;
-    localparam OP_SUB = 4'b0010;
-    localparam OP_SBC = 4'b0011;
-    localparam OP_CP = 4'b0100;
-    localparam OP_AND = 4'b0101;
-    localparam OP_OR = 4'b0110;
-    localparam OP_XOR = 4'b0111;
-    localparam OP_RL = 4'b1000;
-    localparam OP_RR = 4'b1001;
-    localparam OP_BSL = 4'b1010;
-    localparam OP_BSR = 4'b1011;
-    localparam OP_SWAP = 4'b1100;
-    
+    localparam OP_ADD  = 5'b00000;
+    localparam OP_ADC  = 5'b00001;
+    localparam OP_SUB  = 5'b00010;
+    localparam OP_SBC  = 5'b00011;
+    localparam OP_CP   = 5'b00100;
+    localparam OP_AND  = 5'b00101;
+    localparam OP_OR   = 5'b00110;
+    localparam OP_XOR  = 5'b00111;
+    localparam OP_RL   = 5'b01000;
+    localparam OP_RR   = 5'b01001;
+    localparam OP_RLA  = 5'b01010;
+    localparam OP_RRA  = 5'b01011;
+    localparam OP_RLC  = 5'b01100;
+    localparam OP_RRC  = 5'b01101;
+    localparam OP_RLCA = 5'b01110;
+    localparam OP_RRCA = 5'b01111;
+    localparam OP_SLA  = 5'b10000;
+    localparam OP_SRA  = 5'b10001;
+    localparam OP_SRL  = 5'b10010;
+
     reg [4:0] low, high;
     wire carryInEnable = ((opcode == OP_ADC) || (opcode == OP_SBC)) ? (carryIn) : 1'b0;
 
@@ -145,7 +151,7 @@ module alu8(
                 flagsOut[6] = 0;
             end
             
-            OP_RL: begin
+            OP_RL, OP_RLA: begin
                 //set res to left shift, also set carry
                 {flagsOut[4], res} = {regA, carryIn};
 
@@ -153,14 +159,13 @@ module alu8(
                 flagsOut[5] = 0;
 
                 //set zero flag
-                if (res == 0) 
-                    flagsOut[7] = 1;
+                flagsOut[7] = (res == 0 && opcode == OP_RL) ? 1'b1 : 1'b0;
 
                 //set subtraction flag
                 flagsOut[6] = 0;
             end
 
-            OP_RR: begin 
+            OP_RR, OP_RRA: begin 
                 //set res to right shift, also set carry
                 {res, flagsOut[4]} = {carryIn, regA};
 
@@ -168,23 +173,66 @@ module alu8(
                 flagsOut[5] = 0;
 
                 //set zero flag
-                if (res == 0) 
-                    flagsOut[7] = 1;
+                flagsOut[7] = (res == 0 && opcode == OP_RR) ? 1'b1 : 1'b0;
 
                 //set subtraction flag
                 flagsOut[6] = 0;
             end
 
-            OP_BSL: begin
-                
+            OP_RLC, OP_RLCA: begin
+                //set res to left shift, also set carry
+                {flagsOut[4], res} = {regA, regA[7]};
+
+                //set half carry flag
+                flagsOut[5] = 0;
+
+                //set zero flag
+                flagsOut[7] = (res == 0 && opcode == OP_RLC) ? 1'b1 : 1'b0;
+
+                //set subtraction flag
+                flagsOut[6] = 0;
             end
-            
-            OP_BSR: begin
-                
+
+            OP_RRC, OP_RRCA: begin 
+                //set res to right shift, also set carry
+                {res, flagsOut[4]} = {regA[0], regA};
+
+                //set half carry flag
+                flagsOut[5] = 0;
+
+                //set zero flag
+                flagsOut[7] = (res == 0 && opcode == OP_RRC) ? 1'b1 : 1'b0;
+
+                //set subtraction flag
+                flagsOut[6] = 0;
             end
-            
-            OP_SWAP: begin
-                
+
+            OP_SLA: begin
+                //set res to left shift, also set carry
+                {flagsOut[4], res} = regA << 1;
+
+                //set half carry flag
+                flagsOut[5] = 0;
+
+                //set zero flag
+                flagsOut[7] = (res == 0) ? 1'b1 : 1'b0;
+
+                //set subtraction flag
+                flagsOut[6] = 0;
+            end
+
+            OP_SRA, OP_SRL: begin
+                //set res to right shift, also set carry
+                {res, flagsOut[4]} = (opcode == OP_SRA) ? {regA[7], regA} : {1'b0, regA};
+
+                //set half carry flag
+                flagsOut[5] = 0;
+
+                //set zero flag
+                flagsOut[7] = (res == 0) ? 1'b1 : 1'b0;
+
+                //set subtraction flag
+                flagsOut[6] = 0;
             end
 
             default: begin

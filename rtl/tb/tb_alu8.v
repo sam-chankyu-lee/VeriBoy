@@ -3,25 +3,31 @@
 module tb_alu8;
     reg clk;
     reg [7:0] regA, regB;
-    reg [3:0] opcode;
+    reg [4:0] opcode;
     reg carryIn;
 
     wire [7:0] res;
     wire [7:0] flagsOut;
 
-    localparam OP_ADD = 4'b0000;
-    localparam OP_ADC = 4'b0001;
-    localparam OP_SUB = 4'b0010;
-    localparam OP_SBC = 4'b0011;
-    localparam OP_CP = 4'b0100;
-    localparam OP_AND = 4'b0101;
-    localparam OP_OR = 4'b0110;
-    localparam OP_XOR = 4'b0111;
-    localparam OP_RL = 4'b1000;
-    localparam OP_RR = 4'b1001;
-    localparam OP_BSL = 4'b1010;
-    localparam OP_BSR = 4'b1011;
-    localparam OP_SWAP = 4'b1100;
+    localparam OP_ADD  = 5'b00000;
+    localparam OP_ADC  = 5'b00001;
+    localparam OP_SUB  = 5'b00010;
+    localparam OP_SBC  = 5'b00011;
+    localparam OP_CP   = 5'b00100;
+    localparam OP_AND  = 5'b00101;
+    localparam OP_OR   = 5'b00110;
+    localparam OP_XOR  = 5'b00111;
+    localparam OP_RL   = 5'b01000;
+    localparam OP_RR   = 5'b01001;
+    localparam OP_RLA  = 5'b01010;
+    localparam OP_RRA  = 5'b01011;
+    localparam OP_RLC  = 5'b01100;
+    localparam OP_RRC  = 5'b01101;
+    localparam OP_RLCA = 5'b01110;
+    localparam OP_RRCA = 5'b01111;
+    localparam OP_SLA  = 5'b10000;
+    localparam OP_SRA  = 5'b10001;
+    localparam OP_SRL  = 5'b10010;
 
     always #1 clk = ~clk;
     reg [7:0] temp;
@@ -66,6 +72,26 @@ module tb_alu8;
         $display("\nRR");
         for (int i=0; i<100; i=i+1) begin
             testRR();
+        end
+        $display("\nRLC");
+        for (int i=0; i<100; i=i+1) begin
+            testRLC();
+        end
+        $display("\nRRC");
+        for (int i=0; i<100; i=i+1) begin
+            testRRC();
+        end
+        $display("\nSLA");
+        for (int i=0; i<100; i=i+1) begin
+            testSLA();
+        end
+        $display("\nSRA");
+        for (int i=0; i<100; i=i+1) begin
+            testSRA();
+        end
+        $display("\nSRL");
+        for (int i=0; i<100; i=i+1) begin
+            testSRL();
         end
         $finish;
     end
@@ -189,8 +215,8 @@ module tb_alu8;
         #2;
 
         temp <= {regA[6:0], carryIn};
-        $display("Reg A: %8b | Carry: %0b | A<<1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
         if (res != temp) begin
+            $display("Reg A: %8b | Carry: %0b | A<<1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
             $display("RL value is incorrect");
         end
 
@@ -207,9 +233,99 @@ module tb_alu8;
         #2;
 
         temp <= {carryIn, regA[7:1]};
-        $display("Reg A: %8b | Carry: %0b | A>>1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
         if (res != temp) begin
-            $display("RL value is incorrect");
+            $display("Reg A: %8b | Carry: %0b | A>>1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
+            $display("RR value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testRLC();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_RLC;
+        #2;
+
+        temp <= {regA[6:0], regA[7]};
+        if (res != temp) begin
+            $display("Reg A: %8b | A<<1: %8b | Hardware Result: %8b", regA, temp, res);
+            $display("RLC value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testRRC();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_RRC;
+        #2;
+
+        temp <= {regA[0], regA[7:1]};
+        if (res != temp) begin
+            $display("Reg A: %8b | A>>1: %8b | Hardware Result: %8b", regA, temp, res);
+            $display("RRC value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testSLA();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_SLA;
+        #2;
+
+        temp <= {regA[6:0], 1'b0};
+        if (res != temp) begin
+            $display("Reg A: %8b | A<<1: %8b | Hardware Result: %8b", regA, temp, res);
+            $display("SLA value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testSRA();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_SRA;
+        #2;
+
+        temp <= {regA[7], regA[7:1]};
+        if (res != temp) begin
+            $display("Reg A: %8b | A<<1: %8b | Hardware Result: %8b", regA, temp, res);
+            $display("SRA value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testSRL();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_SRL;
+        #2;
+
+        temp <= {1'b0, regA[7:1]};
+        if (res != temp) begin
+            $display("Reg A: %8b | A<<1: %8b | Hardware Result: %8b", regA, temp, res);
+            $display("SRL value is incorrect");
         end
 
         regA <= 0;
