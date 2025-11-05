@@ -28,6 +28,10 @@ module tb_alu8;
     localparam OP_SLA  = 5'b10000;
     localparam OP_SRA  = 5'b10001;
     localparam OP_SRL  = 5'b10010;
+    localparam OP_SWAP = 5'b10011;
+    localparam OP_BIT  = 5'b10100;
+    localparam OP_RES  = 5'b10101;
+    localparam OP_SET  = 5'b10110;
 
     always #1 clk = ~clk;
     reg [7:0] temp;
@@ -92,6 +96,22 @@ module tb_alu8;
         $display("\nSRL");
         for (int i=0; i<100; i=i+1) begin
             testSRL();
+        end
+        $display("\nSWAP");
+        for (int i=0; i<100; i=i+1) begin
+            testSwap();
+        end
+        $display("\nBIT");
+        for (int i=0; i<100; i=i+1) begin
+            testBit();
+        end
+        $display("\nRES");
+        for (int i=0; i<100; i=i+1) begin
+            testRes();
+        end
+        $display("\nSET");
+        for (int i=0; i<100; i=i+1) begin
+            testSet();
         end
         $finish;
     end
@@ -326,6 +346,81 @@ module tb_alu8;
         if (res != temp) begin
             $display("Reg A: %8b | A<<1: %8b | Hardware Result: %8b", regA, temp, res);
             $display("SRL value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testSwap();
+        regA <= rng()[7:0];
+        carryIn <= rng()[0];
+        opcode <= OP_SWAP;
+        #2;
+
+        temp <= {regA[3:0], regA[7:4]};
+        if (res != temp) begin
+            $display("Reg A: %8b | A swap: %8b | Hardware Result: %8b", regA, temp, res);
+            $display("Swap value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testBit();
+        regA <= rng()[7:0];
+        regB <= {5'b00000, rng()[2:0]};
+        carryIn <= rng()[0];
+        opcode <= OP_BIT;
+        #2;
+
+        temp <= {7'b0000000, !regA[regB[2:0]]};
+        if (flagsOut[7] != temp[0]) begin
+            $display("Reg A: %8b | Bit Value: %d | Bit Zero?: %1b | Hardware Result: %1b", regA, regB, temp[0], flagsOut[7]);
+            $display("Bit value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testRes();
+        regA <= rng()[7:0];
+        regB <= {5'b00000, rng()[2:0]};
+        opcode <= OP_RES;
+        #2;
+
+        temp = regA;
+        temp[regB[2:0]] <= 0;
+        if (res != temp) begin
+            $display("Reg A: %8b | Bit Value: %d | Expected Value: %8b | Hardware Result: %8b", regA, regB, temp, res);
+            $display("Bit value is incorrect");
+        end
+
+        regA <= 0;
+        opcode <= 0;
+        carryIn <= 0;
+        #2;
+    endfunction
+
+    function void testSet();
+        regA <= rng()[7:0];
+        regB <= {5'b00000, rng()[2:0]};
+        opcode <= OP_SET;
+        #2;
+
+        temp = regA;
+        temp[regB[2:0]] <= 1;
+        $display("Reg A: %8b | Bit Value: %d | Expected Value: %8b | Hardware Result: %8b", regA, regB, temp, res);
+        if (res != temp) begin
+            $display("Bit value is incorrect");
         end
 
         regA <= 0;

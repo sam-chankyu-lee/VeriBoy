@@ -28,6 +28,14 @@ module alu8(
     localparam OP_SLA  = 5'b10000;
     localparam OP_SRA  = 5'b10001;
     localparam OP_SRL  = 5'b10010;
+    localparam OP_SWAP = 5'b10011;
+    localparam OP_BIT  = 5'b10100;
+    localparam OP_RES  = 5'b10101;
+    localparam OP_SET  = 5'b10110;
+    localparam OP_CCF  = 5'b10111;
+    localparam OP_SCF  = 5'b11000;
+    localparam OP_DAA  = 5'b11001;
+    localparam OP_CPL  = 5'b11010;
 
     reg [4:0] low, high;
     wire carryInEnable = ((opcode == OP_ADC) || (opcode == OP_SBC)) ? (carryIn) : 1'b0;
@@ -235,9 +243,81 @@ module alu8(
                 flagsOut[6] = 0;
             end
 
+            OP_SWAP: begin
+                //set res to swapped value
+                res = {regA[3:0], regA[7:4]};
+
+                //hc flag
+                flagsOut[5] = 0;
+
+                //set zero flag
+                flagsOut[7] = (res == 0) ? 1'b1 : 1'b0;
+
+                //sub flag
+                flagsOut[6] = 0;
+            end
+
+            OP_BIT: begin
+                //hc flag 
+                flagsOut[5] = 0;
+
+                //sub flag
+                flagsOut[6] = 0;
+                
+                //zero flag
+                flagsOut[7] = !(regA[regB[2:0]]);
+            end
+
+            OP_RES: begin
+                //set res
+                res = regA;
+                res[regB[2:0]] = 0;
+            end
+
+            OP_SET: begin
+                //set res
+                res = regA;
+                res[regB[2:0]] = 1;
+            end
+
+            OP_CCF: begin
+                //set carry bit
+                flagsOut[4] = !carryIn;
+
+                //hc flag
+                flagsOut[5] = 0;
+
+                //sub flag
+                flagsOut[6] = 0;
+            end
+
+            OP_SCF: begin
+                //set carry bit
+                flagsOut[4] = 1;
+
+                //hc flag
+                flagsOut[5] = 0;
+
+                //sub flag
+                flagsOut[6] = 0;
+            end
+
+            OP_DAA: begin
+                
+            end
+
+            OP_CPL: begin
+                //set result 
+                res = ~regA;
+
+                //hc flag
+                flagsOut[5] = 1;
+
+                //sub flag
+                flagsOut[6] = 1;
+            end
+
             default: begin
-                
-                
             end
         endcase
     end
