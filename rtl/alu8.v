@@ -3,7 +3,7 @@
 module alu8(
     input [7:0] regA, regB,
     input [4:0] opcode,
-    input carryIn,
+    input [7:0] flagsIn,
 
     output reg [7:0] res,
     output reg [7:0] flagsOut
@@ -38,7 +38,8 @@ module alu8(
     localparam OP_CPL  = 5'b11010;
 
     reg [4:0] low, high;
-    wire carryInEnable = ((opcode == OP_ADC) || (opcode == OP_SBC)) ? (carryIn) : 1'b0;
+    reg [7:0] offsetDAA;
+    wire carryInEnable = ((opcode == OP_ADC) || (opcode == OP_SBC)) ? (flagsIn[4]) : 1'b0;
 
     always @* begin
         // Default (safe) values — assigned in all paths
@@ -46,6 +47,7 @@ module alu8(
         flagsOut  = 8'b0;
         low       = 5'b0;
         high      = 5'b0;
+        offsetDAA = 8'b0;
 
         case (opcode)
             OP_ADD, OP_ADC: begin
@@ -161,7 +163,7 @@ module alu8(
             
             OP_RL, OP_RLA: begin
                 //set res to left shift, also set carry
-                {flagsOut[4], res} = {regA, carryIn};
+                {flagsOut[4], res} = {regA, flagsIn[4]};
 
                 //set half carry flag
                 flagsOut[5] = 0;
@@ -175,7 +177,7 @@ module alu8(
 
             OP_RR, OP_RRA: begin 
                 //set res to right shift, also set carry
-                {res, flagsOut[4]} = {carryIn, regA};
+                {res, flagsOut[4]} = {flagsIn[4], regA};
 
                 //set half carry flag
                 flagsOut[5] = 0;
@@ -282,7 +284,7 @@ module alu8(
 
             OP_CCF: begin
                 //set carry bit
-                flagsOut[4] = !carryIn;
+                flagsOut[4] = !flagsIn[4];
 
                 //hc flag
                 flagsOut[5] = 0;
@@ -303,7 +305,32 @@ module alu8(
             end
 
             OP_DAA: begin
-                
+                //flagsOut[4] = 0; unnecessary, commented for readability
+
+                //do we need to add 0x60, 0x06, or even 0x66
+                if (((flagsIn[6] == 0) && (regA & 8'hF) > 8'h09) || (flagsIn[5] == 1)) begin
+                    offsetDAA = offsetDAA | 8'h06;
+                end
+                if (((flagsIn[6] == 0) && (regA & 8'hF) > 8'h99) || (flagsIn[4] == 1)) begin
+                    offsetDAA = offsetDAA | 8'h60;
+                end
+
+                //if we are subtracting vs if we are not
+                if (flagsIn[6] == 0) begin
+                    res = regA + offsetDAA;
+                end else begin
+                    res = regA - offsetDAA;
+                    flagsOut[4] = 1;
+                end
+
+                //hc flag
+                flagsOut[5] = 0;
+
+                //sub flag
+                flagsOut[6] = flagsIn[6];
+
+                //zero flag
+                flagsOut[7] = !(regA[regB[2:0]]);
             end
 
             OP_CPL: begin

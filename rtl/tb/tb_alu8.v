@@ -4,7 +4,7 @@ module tb_alu8;
     reg clk;
     reg [7:0] regA, regB;
     reg [4:0] opcode;
-    reg carryIn;
+    reg [7:0] flagsIn;
 
     wire [7:0] res;
     wire [7:0] flagsOut;
@@ -40,7 +40,7 @@ module tb_alu8;
         .regA(regA), 
         .regB(regB),
         .opcode(opcode),
-        .carryIn(carryIn),
+        .flagsIn(flagsIn),
 
         .res(res),
         .flagsOut(flagsOut)
@@ -122,7 +122,7 @@ module tb_alu8;
         regA <= 0;
         regB <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #6;
     endfunction
 
@@ -135,7 +135,7 @@ module tb_alu8;
         regA <= rng()[7:0];
         regB <= rng()[7:0];
         opcode <= OP_ADC;
-        carryIn <= 1;
+        flagsIn[4] <= 1;
         #2
         
         temp <= regA+regB+1;
@@ -147,7 +147,7 @@ module tb_alu8;
         regA <= 0;
         regB <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
@@ -155,7 +155,7 @@ module tb_alu8;
         regA <= rng()[7:0];
         regB <= rng()[7:0];
         opcode <= OP_SBC;
-        carryIn <= 1;
+        flagsIn[4] <= 1;
         #2;
 
         temp <= regA-regB-1;
@@ -167,7 +167,7 @@ module tb_alu8;
         regA <= 0;
         regB <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
@@ -186,7 +186,7 @@ module tb_alu8;
         regA <= 0;
         regB <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
@@ -205,7 +205,7 @@ module tb_alu8;
         regA <= 0;
         regB <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
@@ -224,49 +224,49 @@ module tb_alu8;
         regA <= 0;
         regB <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testRL();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_RL;
         #2;
 
-        temp <= {regA[6:0], carryIn};
+        temp <= {regA[6:0], flagsIn[4]};
         if (res != temp) begin
-            $display("Reg A: %8b | Carry: %0b | A<<1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
+            $display("Reg A: %8b | Carry: %0b | A<<1: %8b | Hardware Result: %8b", regA, flagsIn, temp, res);
             $display("RL value is incorrect");
         end
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testRR();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_RR;
         #2;
 
-        temp <= {carryIn, regA[7:1]};
+        temp <= {flagsIn[4], regA[7:1]};
         if (res != temp) begin
-            $display("Reg A: %8b | Carry: %0b | A>>1: %8b | Hardware Result: %8b", regA, carryIn, temp, res);
+            $display("Reg A: %8b | Carry: %0b | A>>1: %8b | Hardware Result: %8b", regA, flagsIn, temp, res);
             $display("RR value is incorrect");
         end
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testRLC();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_RLC;
         #2;
 
@@ -278,13 +278,13 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testRRC();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_RRC;
         #2;
 
@@ -296,13 +296,13 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testSLA();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_SLA;
         #2;
 
@@ -314,13 +314,13 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testSRA();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_SRA;
         #2;
 
@@ -332,13 +332,13 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testSRL();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_SRL;
         #2;
 
@@ -350,13 +350,13 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testSwap();
         regA <= rng()[7:0];
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_SWAP;
         #2;
 
@@ -368,14 +368,14 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
     function void testBit();
         regA <= rng()[7:0];
         regB <= {5'b00000, rng()[2:0]};
-        carryIn <= rng()[0];
+        flagsIn[4] <= rng()[0];
         opcode <= OP_BIT;
         #2;
 
@@ -387,7 +387,7 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
@@ -406,7 +406,7 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 
@@ -425,7 +425,7 @@ module tb_alu8;
 
         regA <= 0;
         opcode <= 0;
-        carryIn <= 0;
+        flagsIn <= 0;
         #2;
     endfunction
 endmodule
